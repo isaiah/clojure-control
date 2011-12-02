@@ -2,7 +2,8 @@
   (:use [clojure.java.io :only [reader]]
         [clojure.string :only [join blank?]]
         [clojure.walk :only [walk]]
-		[clojure.contrib.def :only [defvar- defvar]]))
+        [clojure.contrib.def :only [defvar- defvar]])
+  (:import [clojure.lang PersistentVector]))
 
 (def *enable-color* true)
 (defvar- bash-reset "\033[0m")
@@ -104,13 +105,22 @@
   (let [rsync-options (find-client-options host user cluster :rsync-options)]
 	(log-with-tag host "rsync" rsync-options (str src " ==>" dst))
 	(exec host user (make-cmd-array "rsync" rsync-options [src (str (ssh-client host user) ":" dst)]))))
+(defmulti scp (fn [host user cluster src dst] (class src)))
 
-(defn scp
-  [host user cluster files remoteDir]
+(defmethod scp PersistentVector
+  [host user cluster files remote-dir]
   (let [scp-options (find-client-options host user cluster :scp-options)]
-	(log-with-tag host "scp" scp-options
-	  (join " " (concat files [ " ==> " remoteDir])))
-	(exec host user (make-cmd-array "scp" scp-options (concat files [(str (ssh-client host user) ":" remoteDir)])))))
+    (log-with-tag host "scp" scp-options
+      (join " " (concat files [" ==> " remote-dir])))
+    (exec host user (make-cmd-array "scp" scp-options (concat files [(str (ssh-client host user) ":" remote-dir)])))))
+
+(defmethod scp String
+  [host user cluster local-dir files]
+  (let [scp-options (find-client-options host user cluster :scp-options)]
+    (log-with-tag host "scp" scp-options
+      (join " " (concat files [ " ==> " local-dir])))
+    (map
+      #(exec host user (make-cmd-array "scp" scp-options (conj [(str (ssh-client host user) ":" %)] local-dir))) files)))
 
 (defvar tasks (atom (hash-map)))
 (defvar clusters (atom (hash-map)))

@@ -98,19 +98,21 @@
     (let [files ["a.text" "b.txt"]]
       (is (= '("scp" "-v" "a.text" "b.txt" "user@host:/tmp")
              (scp "host" "user" {:scp-options "-v"} files "/tmp")))
-	  (is (= '("scp" "a.text" "b.txt" "user@host:/tmp")
-             (scp "host" "user" nil files "/tmp"))))))
+      (is (= '("scp" "a.text" "b.txt" "user@host:/tmp")
+             (scp "host" "user" nil files "/tmp")))
+      (is (= '(("scp" "user@host:a.text" "/tmp") ("scp" "user@host:b.txt" "/tmp"))
+             (scp "host" "user" nil "/tmp" files))))))
 
 (deftest test-ssh
   (binding [exec myexec]
-	(is (= '("ssh" "-v" "user@host" "date"))
-		(ssh "host" "user" {:ssh-options "-v"} "date"))
-	(is (= '("ssh" "user@host" "date"))
-		(ssh "host" "user" nil "date"))))
+    (is (= '("ssh" "-v" "user@host" "date"))
+        (ssh "host" "user" {:ssh-options "-v"} "date"))
+    (is (= '("ssh" "user@host" "date"))
+        (ssh "host" "user" nil "date"))))
 
 (deftest test-rsync
   (binding [exec myexec]
-	(is (= '("rsync" "-v" "src" "user@host:dst"))
-		(rsync "host"  "user" {:rsync-options "-v"} "src" "dst"))
-	(is (= '("rsync" "src" "user@host:dst"))
-		(rsync "host"  "user" nil "src" "dst"))))
+    (is (= '("rsync" "-v" "src" "user@host:dst"))
+        (rsync "host"  "user" {:rsync-options "-v"} "src" "dst"))
+    (is (= '("rsync" "src" "user@host:dst"))
+        (rsync "host"  "user" nil "src" "dst"))))
