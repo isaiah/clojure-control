@@ -100,7 +100,7 @@
              (scp "host" "user" {:scp-options "-v"} files "/tmp")))
       (is (= '("scp" "a.text" "b.txt" "user@host:/tmp")
              (scp "host" "user" nil files "/tmp")))
-      (is (= '(("scp" "user@host:a.text" "/tmp") ("scp" "user@host:b.txt" "/tmp"))
+      (is (= '("scp" "user@host:a.text" "user@host:b.txt" "/tmp")
              (scp "host" "user" nil "/tmp" files))))))
 
 (deftest test-ssh
